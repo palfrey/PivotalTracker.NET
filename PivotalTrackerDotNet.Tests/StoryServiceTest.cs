@@ -321,7 +321,23 @@ namespace PivotalTrackerDotNet.Tests
             Assert.NotNull(retrievedTask);
 
             Assert.IsTrue(storyService.RemoveTask(retrievedTask.ProjectId, task.ParentStoryId, retrievedTask.Id));
+        }
 
+        [Test]
+        public void CanRetrieveStoryActivities() {
+            var savedStory = storyService.AddNewStory(Constants.ProjectId, new Story {
+                Name = "Nouvelle histoire",
+                RequestedBy = "pivotaltrackerdotnet",
+                StoryType = StoryType.Feature,
+                Description = "bla bla bla and more bla",
+                ProjectId = Constants.ProjectId,
+                Estimate = 2
+            });
+            storyService.AddComment(savedStory.ProjectId, savedStory.Id, "foo");
+            Console.WriteLine(savedStory.Id);
+            var activities = storyService.GetActivitiesForStory(savedStory);
+            Assert.AreEqual(1, activities.Count);
+            Assert.AreEqual("foo", activities[0].Description);
         }
 
 

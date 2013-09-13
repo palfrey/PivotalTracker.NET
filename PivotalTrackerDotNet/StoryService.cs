@@ -35,6 +35,8 @@ namespace PivotalTrackerDotNet
         Story RemoveStory(int projectId, int storyId);
         Story UpdateStory(int projectId, Story story);
 
+        List<Activity> GetActivitiesForStory(Story story);
+
         Task AddNewTask(Task task);
         Task GetTask(int projectId, int storyId, int taskId);
         
@@ -59,6 +61,7 @@ namespace PivotalTrackerDotNet
         const string IterationEndPoint = "projects/{0}/iterations";
         const string IterationPaginationEndPoint = IterationEndPoint+"?offset={1}&limit={2}";
         const string IterationRecentEndPoint = IterationEndPoint + "/done?offset=-{1}";
+        const string StoryActivitiesEndPoint = SingleStoryEndpoint + "/activity";
 
         public StoryService(AuthenticationToken token, bool needsSSL = false)
             : base(token, needsSSL)
@@ -202,6 +205,19 @@ namespace PivotalTrackerDotNet
             var story = response.Data;
 
             return story;
+        }
+
+        public List<Activity> GetActivitiesForStory(Story story)
+        {
+            var request = this.BuildGetRequest();
+            request.Resource = string.Format(StoryActivitiesEndPoint, story.ProjectId, story.Id);
+            var response = RestClient.Execute(request);
+
+            var activities = new List<Activity>();
+            var serializer = new RestSharpXmlDeserializer();
+            var el = ParseContent(response);
+            activities.AddRange(el.Elements().Select(activity => serializer.Deserialize<Activity>(activity.ToString())));
+            return activities;
         }
 
         public Story AddNewStory(int projectId, Story toBeSaved)
